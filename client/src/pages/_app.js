@@ -3,6 +3,7 @@ import Head from 'next/head';
 import '../styles/globals.css';
 import { useAuthStore } from '../store/authStore';
 import LiveChatWidget from '../components/LiveChatWidget';
+import BackendWakeupBanner from '../components/BackendWakeupBanner';
 
 export default function MyApp({ Component, pageProps }) {
   const initAuth = useAuthStore((state) => state.initAuth);
@@ -22,6 +23,7 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <BackendWakeupBanner />
       <Component {...pageProps} />
       <LiveChatWidget />
     </>
