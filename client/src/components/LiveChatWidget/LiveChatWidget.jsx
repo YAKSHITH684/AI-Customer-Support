@@ -310,11 +310,10 @@ export default function LiveChatWidget() {
       {/* Floating Chat Modal */}
       {isOpen && (
         <div
-          className={`bg-dark-card border border-dark-border rounded-2xl shadow-2xl flex flex-col transition-all duration-300 overflow-hidden ${
-            isMinimized
+          className={`bg-dark-card border border-dark-border rounded-2xl shadow-2xl flex flex-col transition-all duration-300 overflow-hidden ${isMinimized
               ? 'w-80 h-16'
               : 'w-[92vw] sm:w-[420px] h-[600px] max-h-[85vh]'
-          }`}
+            }`}
           style={{
             backdropFilter: 'blur(20px)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.15)'
@@ -384,11 +383,10 @@ export default function LiveChatWidget() {
                           </div>
                         )}
                         <div
-                          className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                            isUser
+                          className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${isUser
                               ? 'bg-gradient-to-br from-brand-600 to-indigo-600 text-white rounded-br-none shadow-md shadow-brand-600/20'
                               : 'bg-dark-surface border border-dark-border text-gray-200 rounded-bl-none shadow-sm'
-                          }`}
+                            }`}
                         >
                           <div className="whitespace-pre-wrap font-normal">
                             {msg.content}
