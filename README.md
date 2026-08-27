@@ -4,6 +4,9 @@
 
 Think **Zendesk / Intercom**, but with an explicit, inspectable multi-agent reasoning layer sitting between the customer's question and the answer they receive.
 
+**🔗 Live Demo:** [ai-customer-support-1-nfmw.onrender.com](https://ai-customer-support-1-nfmw.onrender.com)
+> Hosted on Render's free tier — the app may take ~30–60s to wake up on first load, and outbound email sends fall back to simulation mode (see [Email Delivery note](#-a-note-on-email-delivery-in-production) below).
+
 ---
 
 ## ✨ Key Features
@@ -226,9 +229,3 @@ Full request/response contracts are documented in [`spec.md`](./spec.md).
 - Rate-limited auth endpoints, request validation via express-validator
 - PII (card numbers, national ID patterns) redacted from ticket content before it reaches any LLM provider
 - Missing/expired integration credentials surface as explicit `INTEGRATION_NOT_CONNECTED` / `AUTH_EXPIRED` errors rather than silent failures
-
----
-
-## 📄 License
-
-No license specified yet — add one (MIT is a common default) if you plan to accept external contributions or open-source this project. |
