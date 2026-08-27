@@ -225,17 +225,31 @@ export default function IntegrationsPage() {
                       <span
                         className={`
                           text-xs font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1
-                          ${isConnected ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' : 'bg-gray-700/20 text-gray-400 border-gray-600/30'}
+                          ${savedDoc?.healthStatus === 'expired'
+                            ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                            : isConnected
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : 'bg-gray-700/20 text-gray-400 border-gray-600/30'}
                         `}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
-                        <span>{isConnected ? 'Active' : 'Offline'}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${savedDoc?.healthStatus === 'expired' ? 'bg-amber-400' : isConnected ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
+                        <span>{savedDoc?.healthStatus === 'expired' ? 'Auth Expired' : isConnected ? 'Active' : 'Offline'}</span>
                       </span>
                     </div>
 
                     <p className="text-xs text-gray-300 leading-relaxed">
                       {p.desc}
                     </p>
+
+                    {savedDoc?.healthStatus === 'expired' && (
+                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-semibold">{savedDoc.healthMessage || 'Authentication token expired or key changed.'}</p>
+                          <p className="text-[11px] text-amber-300/80 mt-0.5">Click Disconnect and Connect to re-encrypt and refresh credentials.</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Bottom Action Controls */}

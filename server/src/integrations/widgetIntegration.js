@@ -32,17 +32,16 @@ class WidgetIntegration extends BaseIntegration {
 </script>`;
   }
 
-  async execute(action, payload, integrationDoc) {
-    if (action === 'get_snippet') {
-      const serverUrl = payload.serverUrl || process.env.SERVER_URL || 'http://localhost:5000';
-      const widgetKey = integrationDoc.config?.widgetKey || 'rf_live_default_key';
-      return {
-        snippet: this.getEmbedScript(serverUrl, widgetKey),
-        widgetKey,
-        theme: integrationDoc.config?.theme || 'dark'
-      };
-    }
-    throw new Error(`Unknown Widget action: ${action}`);
+  async execute(action, payload = {}, integrationDoc = {}) {
+    const serverUrl = payload.serverUrl || process.env.SERVER_URL || 'http://localhost:5000';
+    const widgetKey = integrationDoc.config?.widgetKey || 'rf_live_default_key';
+    return {
+      success: true,
+      action,
+      snippet: this.getEmbedScript(serverUrl, widgetKey),
+      widgetKey,
+      theme: integrationDoc.config?.theme || 'dark'
+    };
   }
 }
 

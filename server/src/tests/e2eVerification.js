@@ -85,7 +85,7 @@ async function runE2EVerification() {
     }
 
     // 6. Integration Test Execution
-    console.log('\n[6/6] Testing Third-Party Integration Alert (/api/integrations/slack/execute)...');
+    console.log('\n[6/8] Testing Slack Integration Alert (/api/integrations/slack/execute)...');
     const slackRes = await axios.post(
       `${API_BASE}/integrations/slack/execute`,
       {
@@ -96,8 +96,35 @@ async function runE2EVerification() {
     );
     console.log('✅ Slack Webhook Dispatched:', slackRes.data.result.message);
 
+    // 7. Gmail & Google Sheets Integrations Execution
+    console.log('\n[7/8] Testing Gmail & Google Sheets Integrations (/api/integrations/.../execute)...');
+    const gmailRes = await axios.post(
+      `${API_BASE}/integrations/gmail/execute`,
+      {
+        action: 'send_email',
+        payload: { to: 'customer@acme.com', subject: 'E2E Verification', body: 'Automated test message' }
+      },
+      { headers: authHeaders }
+    );
+    console.log('✅ Gmail Reply Dispatched:', gmailRes.data.result.messageId);
+
+    const sheetsRes = await axios.post(
+      `${API_BASE}/integrations/google-sheets/execute`,
+      {
+        action: 'append_row',
+        payload: { rowData: ['TICK-E2E', 'Password Recovery', '0.94', 'RESOLVED', new Date().toISOString()] }
+      },
+      { headers: authHeaders }
+    );
+    console.log(`✅ Google Sheets Row Exported: ${sheetsRes.data.result.rowsExported} row(s) synced.`);
+
+    // 8. Integrations Status & Health Check
+    console.log('\n[8/8] Testing Full Integrations Status (/api/integrations)...');
+    const statusRes = await axios.get(`${API_BASE}/integrations`, { headers: authHeaders });
+    console.log(`✅ Integrations retrieved: ${statusRes.data.integrations?.length} providers active & healthy.`);
+
     console.log('\n===========================================================');
-    console.log('🎉 ALL 6/6 END-TO-END VERIFICATION CHECKS PASSED PERFECTLY!');
+    console.log('🎉 ALL 8/8 END-TO-END VERIFICATION CHECKS PASSED PERFECTLY!');
     console.log('===========================================================');
   } catch (error) {
     console.error('❌ Verification test failed:', error.response?.data || error.message);

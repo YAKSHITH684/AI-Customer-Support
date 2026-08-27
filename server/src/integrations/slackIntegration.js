@@ -33,6 +33,12 @@ class SlackIntegration extends BaseIntegration {
     if (!integrationDoc || !integrationDoc.isConnected) {
       return { status: 'disconnected', message: 'INTEGRATION_NOT_CONNECTED: Slack bot is not connected.' };
     }
+    if (integrationDoc.encryptedAccessToken) {
+      const token = decrypt(integrationDoc.encryptedAccessToken);
+      if (!token) {
+        return { status: 'expired', message: 'AUTH_EXPIRED: Invalid decryption key or corrupted token. Please reconnect.' };
+      }
+    }
     return { status: 'connected', message: 'Slack escalation alert channel is connected.' };
   }
 

@@ -128,10 +128,14 @@ const setupManualIntegration = async ({ provider, apiKey, accountEmail, accountN
   if (apiKey) {
     integration.encryptedApiKey = encrypt(apiKey);
   }
+  if (isConnected && !integration.encryptedAccessToken) {
+    integration.encryptedAccessToken = encrypt(`mock_${provider}_access_token_${Date.now()}`);
+  }
   if (accountEmail) integration.accountEmail = accountEmail;
   if (accountName) integration.accountName = accountName;
   integration.config = { ...integration.config, ...config };
   integration.lastSyncedAt = new Date();
+  integration.errorStatus = null;
 
   await integration.save();
 
