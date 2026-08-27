@@ -126,41 +126,55 @@ ${contextSnippet}`;
  */
 const escalateChatToTicket = async ({ customerEmail, customerName, title, history = [], priority = 'medium' }) => {
   const User = require('../models/User');
-  let customer = await User.findOne({ email: customerEmail || 'guest@resolveflow.ai' });
+  let customer = await User.findOne({ email: customerEmail || 'customer@example.com' });
   
   if (!customer) {
     customer = await User.findOne({ role: 'customer' });
   }
 
+  if (!customer) {
+    customer = await User.findOne({});
+  }
+
+  const subjectText = title || (history[0]?.content ? `Live Chat: ${history[0].content.slice(0, 50)}...` : 'Live Chat Escalation Inquiry');
+  const descriptionText = history.map(h => `${h.role === 'user' ? 'Customer' : 'Assistant'}: ${h.content}`).join('\n\n') || 'Customer requested live support agent assistance from the chat widget.';
+
   const newTicket = await Ticket.create({
-    title: title || `Chat Escalation: ${history[0]?.content?.slice(0, 40) || 'Customer Inquiry'}...`,
+    subject: subjectText,
+    description: descriptionText,
     customer: customer ? customer._id : null,
-    customerEmail: customerEmail || (customer ? customer.email : 'guest@resolveflow.ai'),
-    customerName: customerName || (customer ? customer.name : 'Guest User'),
     priority: priority || 'medium',
     status: 'open',
-    channel: 'website_widget',
+    channel: 'widget',
     tags: ['live-chat', 'escalation', 'groq-assisted']
   });
 
   // Save the conversation history as messages
+  let firstUserMsg = null;
   for (const item of history) {
-    await Message.create({
-      ticket: newTicket._id,
-      sender: item.role === 'user' ? (customer ? customer._id : null) : null,
-      senderType: item.role === 'user' ? 'customer' : 'bot',
+    const isUser = item.role === 'user';
+    const msg = await Message.create({
+      ticketId: newTicket._id,
+      sender: isUser ? 'customer' : 'ai',
+      senderUser: isUser && customer ? customer._id : null,
       content: item.content
     });
+    if (isUser && !firstUserMsg) firstUserMsg = msg;
   }
 
   // Create initial resolution item
-  await Resolution.create({
-    ticket: newTicket._id,
-    draftResponse: 'A human support agent will join and review your chat history shortly.',
-    status: 'NEEDS_REVIEW',
-    confidenceScore: 0.5,
-    needsHumanReview: true
+  const resolution = await Resolution.create({
+    ticketId: newTicket._id,
+    messageId: firstUserMsg ? firstUserMsg._id : null,
+    customerQuery: firstUserMsg ? firstUserMsg.content : descriptionText,
+    draftOutput: 'A support agent has received your escalated chat session and will assist you shortly.',
+    status: 'ESCALATED',
+    escalationReason: 'MANUAL_ESCALATION',
+    confidenceScore: 0.5
   });
+
+  newTicket.activeResolution = resolution._id;
+  await newTicket.save();
 
   return newTicket;
 };

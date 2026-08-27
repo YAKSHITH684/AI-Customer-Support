@@ -53,15 +53,18 @@ export default function IntegrationsPage() {
       });
 
       if (res.data?.success) {
+        const isLive = res.data.result?.isLiveDelivery;
         setEmailStatus({
           success: true,
-          message: `Email successfully delivered to ${emailForm.to}! (ID: ${res.data.result?.messageId || 'sent'})`
+          message: isLive
+            ? `Email successfully delivered to ${emailForm.to} via Live SMTP! (ID: ${res.data.result?.messageId || 'sent'})`
+            : `Email dispatched to ${emailForm.to} in simulated sandbox mode. (ID: ${res.data.result?.messageId || 'simulated'})`
         });
       }
     } catch (err) {
       setEmailStatus({
         success: false,
-        message: err.response?.data?.error || err.message || 'Failed to dispatch email.'
+        message: err.userFriendlyMessage || err.response?.data?.error || err.message || 'Failed to dispatch email.'
       });
     } finally {
       setIsSendingEmail(false);

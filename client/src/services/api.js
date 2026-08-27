@@ -4,7 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 60000, // 60s timeout to accommodate cold starts and AI inference
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,7 +24,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor: handle 401 unauthenticated
+// Interceptor: handle errors, timeouts, and 401 unauthenticated
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,6 +34,14 @@ api.interceptors.response.use(
         // localStorage.removeItem('rf_auth_token');
       }
     }
+
+    // Enhance timeout error message
+    if (error.code === 'ECONNABORTED' || (error.message && error.message.includes('timeout'))) {
+      error.userFriendlyMessage = 'Request timed out after waiting for server response. If the backend is waking up or performing a heavy task, please retry.';
+    } else if (error.code === 'ERR_NETWORK' || !error.response) {
+      error.userFriendlyMessage = 'Cannot connect to backend server. Please verify the backend server is running.';
+    }
+
     return Promise.reject(error);
   }
 );
