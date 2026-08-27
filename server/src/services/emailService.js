@@ -10,19 +10,35 @@ const getTransporter = () => {
   if (transporter) return transporter;
 
   if (config.SMTP_USER && config.SMTP_PASS) {
-    transporter = nodemailer.createTransport({
-      host: config.SMTP_HOST || 'smtp.gmail.com',
-      port: config.SMTP_PORT || 465,
-      secure: config.SMTP_SECURE,
-      auth: {
-        user: config.SMTP_USER,
-        pass: config.SMTP_PASS
-      },
-      connectionTimeout: 10000, // 10s timeout to connect
-      greetingTimeout: 10000,   // 10s greeting timeout
-      socketTimeout: 15000      // 15s socket timeout
-    });
-    console.log(`✉️ [EmailService] SMTP Transporter configured for ${config.SMTP_USER} (${config.SMTP_HOST}:${config.SMTP_PORT})`);
+    const isGmail = (config.SMTP_HOST && config.SMTP_HOST.includes('gmail')) || (config.SMTP_USER && config.SMTP_USER.includes('@gmail.com'));
+
+    if (isGmail) {
+      transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: config.SMTP_USER,
+          pass: config.SMTP_PASS
+        },
+        connectionTimeout: 12000, // 12s timeout to connect
+        greetingTimeout: 10000,   // 10s greeting timeout
+        socketTimeout: 15000      // 15s socket timeout
+      });
+      console.log(`✉️ [EmailService] Gmail Transporter configured for ${config.SMTP_USER} via service:gmail`);
+    } else {
+      transporter = nodemailer.createTransport({
+        host: config.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(config.SMTP_PORT || '587', 10),
+        secure: config.SMTP_PORT === 465 || config.SMTP_SECURE === true || config.SMTP_SECURE === 'true',
+        auth: {
+          user: config.SMTP_USER,
+          pass: config.SMTP_PASS
+        },
+        connectionTimeout: 12000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000
+      });
+      console.log(`✉️ [EmailService] SMTP Transporter configured for ${config.SMTP_USER} (${config.SMTP_HOST}:${config.SMTP_PORT || 587})`);
+    }
   }
   return transporter;
 };
@@ -44,7 +60,7 @@ const verifySMTP = async () => {
     return {
       configured: true,
       success: true,
-      message: `SMTP connection established successfully with ${config.SMTP_HOST}`
+      message: `SMTP connection established successfully with ${config.SMTP_HOST || 'Gmail'}`
     };
   } catch (error) {
     console.error('❌ SMTP verification failed:', error.message);
@@ -72,9 +88,9 @@ const sendMail = async ({ to, subject, text, html, ticketNumber }) => {
 
   if (mailer && config.SMTP_USER && config.SMTP_PASS) {
     try {
-      console.log(`📤 [EmailService] Sending real email via SMTP to ${to}...`);
+      console.log(`📤 [EmailService] Sending real email via Gmail to ${to}...`);
       
-      // Wrap sendMail in a 6-second timeout promise race
+      // Wrap sendMail in a 12-second timeout promise race
       const sendPromise = mailer.sendMail({
         from,
         to,
@@ -84,7 +100,7 @@ const sendMail = async ({ to, subject, text, html, ticketNumber }) => {
       });
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('SMTP_TIMEOUT: Connection to mail server timed out (often blocked on cloud hosting like Render).')), 6000)
+        setTimeout(() => reject(new Error('SMTP_TIMEOUT: Connection to mail server timed out.')), 12000)
       );
 
       const info = await Promise.race([sendPromise, timeoutPromise]);
