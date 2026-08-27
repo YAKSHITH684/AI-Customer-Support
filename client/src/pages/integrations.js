@@ -294,6 +294,67 @@ export default function IntegrationsPage() {
                       {p.desc}
                     </p>
 
+                    {/* Inline Live Email Dispatcher for Gmail */}
+                    {p.id === 'gmail' && isConnected && (
+                      <div className="p-3.5 rounded-2xl bg-dark-bg/80 border border-rose-500/20 space-y-2.5 mt-2">
+                        <div className="flex items-center justify-between text-[11px] text-rose-300 font-semibold">
+                          <span className="flex items-center gap-1.5">
+                            <Mail className="w-3.5 h-3.5" />
+                            Live Gmail SMTP Dispatcher
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-mono">From: yakshith023@gmail.com</span>
+                        </div>
+
+                        {emailStatus && (
+                          <div className={`p-2 rounded-xl text-[11px] flex items-center gap-1.5 ${emailStatus.success ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'}`}>
+                            {emailStatus.success ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />}
+                            <span className="truncate">{emailStatus.message}</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5">
+                          <input
+                            type="email"
+                            value={emailForm.to}
+                            onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
+                            placeholder="Recipient Email (To)"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-dark-card border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50"
+                          />
+                          <input
+                            type="text"
+                            value={emailForm.subject}
+                            onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                            placeholder="Subject"
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-dark-card border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50"
+                          />
+                          <textarea
+                            rows={2}
+                            value={emailForm.body}
+                            onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
+                            placeholder="Message body..."
+                            className="w-full px-2.5 py-1.5 rounded-lg bg-dark-card border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50 resize-none"
+                          />
+                          <button
+                            onClick={handleSendCustomEmail}
+                            disabled={isSendingEmail}
+                            className="w-full py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-glow-brand disabled:opacity-50"
+                          >
+                            {isSendingEmail ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Sending Live Email...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3.5 h-3.5" />
+                                <span>Send Live Email to {emailForm.to}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {savedDoc?.healthStatus === 'expired' && (
                       <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
