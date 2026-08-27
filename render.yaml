@@ -15,19 +15,31 @@ services:
       - key: PORT
         value: 10000
       - key: CLIENT_URL
-        value: https://resolveflow-frontend.onrender.com
+        value: https://ai-customer-support-1-nfmw.onrender.com
       - key: JWT_SECRET
-        generateValue: true
+        value: resolveflow_ai_dev_jwt_secret_key_2026_super_secure!
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: CREDENTIAL_ENCRYPTION_KEY
-        generateValue: true
+        value: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
         value: openai/gpt-oss-120b
       - key: MONGODB_URI
         sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 465
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        value: yakshith023@gmail.com
+      - key: SMTP_PASS
+        value: yvnilidknochfvwk
+      - key: SMTP_FROM
+        value: "ResolveFlow AI Support" <yakshith023@gmail.com>
 
   # ====================================================
   # ResolveFlow_AI Frontend (Render Free Static Site)
