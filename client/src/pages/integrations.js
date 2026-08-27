@@ -139,14 +139,14 @@ export default function IntegrationsPage() {
   const providers = [
     {
       id: 'gmail',
-      name: 'Gmail Support Inbox',
+      name: 'Resend Email Dispatcher',
       icon: Mail,
       color: 'text-rose-400',
       bg: 'bg-rose-500/10',
       border: 'border-rose-500/30',
-      desc: 'Ingest customer support emails automatically and dispatch AI or agent resolutions via Gmail API.',
+      desc: 'Dispatch AI or agent resolutions, real-time ticket updates, and customer notifications via Resend HTTP Email API.',
       testAction: 'send_email',
-      testPayload: { to: 'yakshithanandapu684@gmail.com', subject: 'ResolveFlow AI Live Email Verification', body: 'This is a verified live dispatch from the ResolveFlow AI Customer Support Platform.' },
+      testPayload: { to: 'yakshithanandapu684@gmail.com', subject: 'ResolveFlow AI Live Email Verification', body: 'This is a verified live dispatch from the ResolveFlow AI Customer Support Platform via Resend HTTP API.' },
       testLabel: 'Send Test Email Dispatch',
     },
     {
@@ -273,7 +273,7 @@ export default function IntegrationsPage() {
                             {p.name}
                           </h3>
                           <div className="text-[11px] text-gray-400 font-mono">
-                            {savedDoc?.accountEmail || savedDoc?.accountName || 'Connected'}
+                            {p.id === 'gmail' ? 'onboarding@resend.dev' : (savedDoc?.accountEmail || savedDoc?.accountName || 'Connected')}
                           </div>
                         </div>
                       </div>
