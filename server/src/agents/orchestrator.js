@@ -10,6 +10,7 @@ const { logAgentStep } = require('./monitoringAgent');
 const { emitResolutionUpdate, emitTicketUpdate, emitNotification } = require('../config/socket');
 const slackIntegration = require('../integrations/slackIntegration');
 const Integration = require('../models/Integration');
+const emailService = require('../services/emailService');
 
 // Check if LangChain core is available
 let isLangChainAvailable = false;
@@ -194,6 +195,22 @@ const runAgentChain = async ({ ticketId, messageId, customerQuery, userId }) => 
         message: `Your ticket "${updatedTicket.subject}" was automatically resolved by AI.`
       });
       emitNotification(updatedTicket.customer?._id || userId, notification);
+
+      // Dispatch AI Resolution via Resend HTTP Email API
+      if (updatedTicket.customer?.email) {
+        setImmediate(async () => {
+          try {
+            await emailService.sendMail({
+              to: updatedTicket.customer.email,
+              subject: `[ResolveFlow Support] Ticket #${updatedTicket.ticketNumber} Resolved: ${updatedTicket.subject}`,
+              text: `Hello ${updatedTicket.customer.name || 'Customer'},\n\nYour support ticket #${updatedTicket.ticketNumber} ("${updatedTicket.subject}") has been resolved by our AI support agent:\n\n${draftingResult.draft}\n\nBest regards,\nResolveFlow AI Support Team`,
+              ticketNumber: updatedTicket.ticketNumber
+            });
+          } catch (e) {
+            console.error('[Orchestrator] Error dispatching auto-resolution email:', e.message);
+          }
+        });
+      }
 
     } else {
       // ESCALATION PATH

@@ -17,7 +17,9 @@ import {
   Copy,
   Check,
   Send,
-  Loader2
+  Loader2,
+  Info,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function IntegrationsPage() {
@@ -56,14 +58,18 @@ export default function IntegrationsPage() {
         const isLive = res.data.result?.isLiveDelivery;
         setEmailStatus({
           success: true,
+          isLive,
           message: isLive
-            ? `Email successfully delivered to ${emailForm.to} via Resend HTTP API! (ID: ${res.data.result?.messageId || 'sent'})`
-            : `Email dispatched to ${emailForm.to} in simulated sandbox mode. (ID: ${res.data.result?.messageId || 'simulated'})`
+            ? `Live email successfully delivered to ${emailForm.to} via Resend HTTP API! (Message ID: ${res.data.result?.messageId || 'sent'})`
+            : `Email dispatched in development sandbox mode (ID: ${res.data.result?.messageId || 'simulated'}).`,
+          simulatedReason: res.data.result?.simulatedReason || res.data.result?.note,
+          recipient: emailForm.to
         });
       }
     } catch (err) {
       setEmailStatus({
         success: false,
+        isLive: false,
         message: err.userFriendlyMessage || err.response?.data?.error || err.message || 'Failed to dispatch email.'
       });
     } finally {
@@ -309,13 +315,40 @@ export default function IntegrationsPage() {
                         </div>
 
                         {emailStatus && (
-                          <div className={`p-2 rounded-xl text-[11px] flex items-center gap-1.5 ${emailStatus.success ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border border-rose-500/20'}`}>
-                            {emailStatus.success ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />}
-                            <span className="truncate">{emailStatus.message}</span>
+                          <div
+                            className={`p-2.5 rounded-xl text-xs space-y-1 ${
+                              emailStatus.isLive
+                                ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-200 border border-amber-500/20'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5 font-medium">
+                              {emailStatus.isLive ? (
+                                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                              ) : (
+                                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                              )}
+                              <span>{emailStatus.message}</span>
+                            </div>
+                            {emailStatus.simulatedReason && (
+                              <p className="text-[11px] text-amber-300/90 pl-5 leading-tight">
+                                {emailStatus.simulatedReason}
+                              </p>
+                            )}
                           </div>
                         )}
 
                         <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-1 text-[11px]">
+                            <span className="text-gray-400">Recipient (To):</span>
+                            <button
+                              type="button"
+                              onClick={() => setEmailForm({ ...emailForm, to: 'yakshithanandapu684@gmail.com' })}
+                              className="text-[10px] text-rose-400 hover:text-rose-300 font-mono underline cursor-pointer"
+                            >
+                              Use Verified Test Email
+                            </button>
+                          </div>
                           <input
                             type="email"
                             value={emailForm.to}
@@ -345,7 +378,7 @@ export default function IntegrationsPage() {
                             {isSendingEmail ? (
                               <>
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>Sending Live Email...</span>
+                                <span>Dispatching via Resend...</span>
                               </>
                             ) : (
                               <>
@@ -455,26 +488,55 @@ export default function IntegrationsPage() {
 
                 {emailStatus && (
                   <div
-                    className={`p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2 ${
-                      emailStatus.success
+                    className={`p-3.5 rounded-xl border text-xs leading-relaxed space-y-1.5 ${
+                      emailStatus.isLive
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
                     }`}
                   >
-                    {emailStatus.success ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                    )}
-                    <span>{emailStatus.message}</span>
+                    <div className="flex items-start gap-2">
+                      {emailStatus.isLive ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div className="space-y-1">
+                        <span className="font-semibold">{emailStatus.message}</span>
+                        {emailStatus.simulatedReason && (
+                          <p className="text-[11px] text-amber-300/90 leading-tight">
+                            <strong>Reason:</strong> {emailStatus.simulatedReason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
+                <div className="p-3 rounded-xl bg-dark-bg/60 border border-dark-border text-xs text-gray-400 space-y-1">
+                  <div className="flex items-center gap-1.5 text-rose-300 font-medium text-[11px]">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Resend Free Sandbox Restriction Notice</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-gray-400">
+                    Resend default test domain (<code className="text-rose-300">onboarding@resend.dev</code>) delivers live emails <strong>only to the verified account owner</strong> (<code className="text-gray-200">yakshithanandapu684@gmail.com</code>).
+                    To deliver to any other recipient address, verify your custom domain on Resend.
+                  </p>
+                </div>
+
                 <form onSubmit={handleSendCustomEmail} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-300 mb-1">
-                      Recipient Email (To)
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-semibold text-gray-300">
+                        Recipient Email (To)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setEmailForm({ ...emailForm, to: 'yakshithanandapu684@gmail.com' })}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 font-mono underline cursor-pointer"
+                      >
+                        Set to Verified Test Email
+                      </button>
+                    </div>
                     <input
                       type="email"
                       required

@@ -2,7 +2,9 @@ const Ticket = require('../models/Ticket');
 const Message = require('../models/Message');
 const Resolution = require('../models/Resolution');
 const ResolutionLog = require('../models/ResolutionLog');
+const User = require('../models/User');
 const { runAgentChain } = require('../agents/orchestrator');
+const emailService = require('./emailService');
 
 const createTicket = async ({ subject, description, category = 'General', priority = 'medium', channel = 'manual', tags = [], user }) => {
   const ticket = await Ticket.create({
@@ -38,7 +40,25 @@ const createTicket = async ({ subject, description, category = 'General', priori
     }
   });
 
-  return await Ticket.findById(ticket._id).populate('customer', 'name email role');
+  const createdTicket = await Ticket.findById(ticket._id).populate('customer', 'name email role');
+
+  // Dispatch live confirmation email to customer via Resend HTTP API
+  if (createdTicket.customer?.email) {
+    setImmediate(async () => {
+      try {
+        await emailService.sendMail({
+          to: createdTicket.customer.email,
+          subject: `[ResolveFlow Support] Ticket #${createdTicket.ticketNumber} Created: ${createdTicket.subject}`,
+          text: `Hello ${createdTicket.customer.name || 'Customer'},\n\nWe have received your support request #${createdTicket.ticketNumber} ("${createdTicket.subject}").\n\nOur AI Agent orchestrator is currently analyzing your request and synthesizing a resolution.\n\nBest regards,\nResolveFlow AI Support Team`,
+          ticketNumber: createdTicket.ticketNumber
+        });
+      } catch (e) {
+        console.error('[TicketService] Error dispatching ticket creation email:', e.message);
+      }
+    });
+  }
+
+  return createdTicket;
 };
 
 const addMessage = async ({ ticketId, content, user, attachments = [] }) => {
@@ -75,6 +95,23 @@ const addMessage = async ({ ticketId, content, user, attachments = [] }) => {
         });
       } catch (err) {
         console.error(`Agent chain error on reply for ticket ${ticket._id}:`, err);
+      }
+    });
+  } else if (senderType === 'agent' && ticket.customer) {
+    // If human agent replies, notify customer via email
+    setImmediate(async () => {
+      try {
+        const cust = await User.findById(ticket.customer).select('name email');
+        if (cust?.email) {
+          await emailService.sendMail({
+            to: cust.email,
+            subject: `[ResolveFlow Support] New Reply on Ticket #${ticket.ticketNumber}`,
+            text: `Hello ${cust.name || 'Customer'},\n\nAn agent replied to your ticket #${ticket.ticketNumber} ("${ticket.subject}"):\n\n${content}\n\nBest regards,\nResolveFlow AI Support Team`,
+            ticketNumber: ticket.ticketNumber
+          });
+        }
+      } catch (e) {
+        console.error('[TicketService] Error dispatching agent reply email:', e.message);
       }
     });
   }

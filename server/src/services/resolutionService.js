@@ -6,6 +6,7 @@ const Notification = require('../models/Notification');
 const { runAgentChain } = require('../agents/orchestrator');
 const { emitResolutionUpdate, emitTicketUpdate, emitNotification } = require('../config/socket');
 const { logAgentStep } = require('../agents/monitoringAgent');
+const emailService = require('./emailService');
 
 const getResolutionById = async (resolutionId) => {
   const resolution = await Resolution.findById(resolutionId)
@@ -94,6 +95,22 @@ const approveResolution = async (resolutionId, user) => {
   emitResolutionUpdate(ticket._id, resolution);
   emitTicketUpdate(populatedTicket);
 
+  // Dispatch live email to customer via Resend HTTP API
+  if (populatedTicket.customer?.email) {
+    setImmediate(async () => {
+      try {
+        await emailService.sendMail({
+          to: populatedTicket.customer.email,
+          subject: `[ResolveFlow Support] Ticket #${populatedTicket.ticketNumber} Update: ${populatedTicket.subject}`,
+          text: `Hello ${populatedTicket.customer.name || 'Customer'},\n\nOur support team has approved and sent the resolution for ticket #${populatedTicket.ticketNumber} ("${populatedTicket.subject}"):\n\n${resolution.finalOutput}\n\nBest regards,\nResolveFlow AI Support Team`,
+          ticketNumber: populatedTicket.ticketNumber
+        });
+      } catch (e) {
+        console.error('[ResolutionService] Error dispatching approval email:', e.message);
+      }
+    });
+  }
+
   return {
     success: true,
     resolution,
@@ -157,6 +174,22 @@ const editResolution = async (resolutionId, editedContent, user) => {
   const populatedTicket = await Ticket.findById(ticket._id).populate('customer', 'name email').populate('assignedAgent', 'name email');
   emitResolutionUpdate(ticket._id, resolution);
   emitTicketUpdate(populatedTicket);
+
+  // Dispatch live email to customer via Resend HTTP API
+  if (populatedTicket.customer?.email) {
+    setImmediate(async () => {
+      try {
+        await emailService.sendMail({
+          to: populatedTicket.customer.email,
+          subject: `[ResolveFlow Support] Ticket #${populatedTicket.ticketNumber} Update: ${populatedTicket.subject}`,
+          text: `Hello ${populatedTicket.customer.name || 'Customer'},\n\nOur support team has updated your ticket #${populatedTicket.ticketNumber} ("${populatedTicket.subject}"):\n\n${editedContent}\n\nBest regards,\nResolveFlow AI Support Team`,
+          ticketNumber: populatedTicket.ticketNumber
+        });
+      } catch (e) {
+        console.error('[ResolutionService] Error dispatching edited resolution email:', e.message);
+      }
+    });
+  }
 
   return {
     success: true,
