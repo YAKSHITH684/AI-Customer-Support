@@ -155,18 +155,18 @@ async function runE2EVerification() {
   });
   if (p7) passedCount++;
 
-  // 8. Live Gmail / SMTP Dispatch
-  const p8 = await runStep(8, TOTAL_STEPS, 'Gmail Live Support Email Dispatch (/api/integrations/gmail/execute)', async () => {
+  // 8. Live Resend HTTP Email Dispatch
+  const p8 = await runStep(8, TOTAL_STEPS, 'Resend Live Support Email Dispatch (/api/integrations/gmail/execute)', async () => {
     const res = await axios.post(`${API_BASE}/integrations/gmail/execute`, {
       action: 'send_email',
       payload: {
-        to: 'yakshith023@gmail.com',
-        subject: '[E2E Test] Live Support Email Verification',
+        to: 'yakshithanandapu684@gmail.com',
+        subject: '[E2E Test] Live Support Email Verification via Resend',
         body: 'This is an end-to-end verification email demonstrating zero timeouts.'
       }
     }, { headers: authHeaders, timeout: 20000 });
     return {
-      LiveDelivery: res.data.result?.isLiveDelivery ? 'Yes (Live SMTP)' : 'Simulated Sandbox Mode',
+      LiveDelivery: res.data.result?.isLiveDelivery ? 'Yes (Live Resend API)' : 'Simulated Sandbox Mode',
       MessageId: res.data.result?.messageId,
       Recipient: res.data.result?.recipient
     };

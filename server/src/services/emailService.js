@@ -1,104 +1,51 @@
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const config = require('../config/env');
 
-let transporter = null;
-
 /**
- * Initialize nodemailer transporter with robust SMTP settings
+ * Verify Resend HTTP API Key status
  */
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  const smtpUser = config.SMTP_USER || process.env.SMTP_USER || '';
-  const smtpPass = config.SMTP_PASS || process.env.SMTP_PASS || '';
-
-  if (smtpUser && smtpPass) {
-    const isGmail = (config.SMTP_HOST && config.SMTP_HOST.includes('gmail')) || smtpUser.includes('@gmail.com');
-
-    if (isGmail) {
-      transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // Port 587 uses STARTTLS
-        auth: {
-          user: smtpUser,
-          pass: smtpPass
-        },
-        tls: {
-          rejectUnauthorized: false
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 10000,
-        socketTimeout: 20000
-      });
-      console.log(`✉️ [EmailService] Gmail SMTP configured for ${smtpUser} (smtp.gmail.com:587 STARTTLS)`);
-    } else {
-      transporter = nodemailer.createTransport({
-        host: config.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(config.SMTP_PORT || '587', 10),
-        secure: config.SMTP_PORT === 465 || config.SMTP_SECURE === true || config.SMTP_SECURE === 'true',
-        auth: {
-          user: smtpUser,
-          pass: smtpPass
-        },
-        tls: {
-          rejectUnauthorized: false
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 10000,
-        socketTimeout: 20000
-      });
-      console.log(`✉️ [EmailService] Custom SMTP configured for ${smtpUser} (${config.SMTP_HOST}:${config.SMTP_PORT || 587})`);
-    }
-  }
-
-  return transporter;
-};
-
-/**
- * Verify SMTP connection
- */
-const verifySMTP = async () => {
-  const mailer = getTransporter();
-  if (!mailer) {
+const verifyResend = async () => {
+  const apiKey = config.RESEND_API_KEY || process.env.RESEND_API_KEY;
+  if (!apiKey) {
     return {
       configured: false,
-      message: 'SMTP credentials not configured in .env (operating in simulated sandbox mode).'
+      message: 'Resend API key not configured (operating in simulated sandbox mode).'
     };
   }
 
   try {
-    await mailer.verify();
+    const res = await axios.get('https://api.resend.com/api-keys', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      timeout: 8000
+    });
     return {
       configured: true,
       success: true,
-      message: `SMTP connection established successfully with ${config.SMTP_HOST || 'smtp.gmail.com'}`
+      provider: 'resend',
+      message: 'Resend HTTP API connection established and verified.'
     };
   } catch (error) {
-    console.error('❌ SMTP verification failed:', error.message);
     return {
       configured: true,
-      success: false,
-      error: error.message
+      success: error.response?.status !== 401,
+      provider: 'resend',
+      error: error.response?.data?.message || error.message
     };
   }
 };
 
 /**
- * Send an email via SMTP or simulated fallback
+ * Send an email via Resend HTTP API or simulated sandbox fallback
  * @param {Object} options
- * @param {string} options.to - Recipient email
+ * @param {string|string[]} options.to - Recipient email(s)
  * @param {string} options.subject - Email subject
- * @param {string} options.text - Plain text content
- * @param {string} [options.html] - HTML content
- * @param {string} [options.ticketNumber] - Optional ticket reference
+ * @param {string} options.text - Plain text body
+ * @param {string} [options.html] - HTML body
+ * @param {string} [options.ticketNumber] - Reference ticket ID
  */
 const sendMail = async ({ to, subject, text, html, ticketNumber }) => {
-  const mailer = getTransporter();
-  const smtpUser = config.SMTP_USER || process.env.SMTP_USER || '';
-  const smtpPass = config.SMTP_PASS || process.env.SMTP_PASS || '';
-
-  const fromAddress = config.SMTP_FROM || (smtpUser ? `"ResolveFlow AI Support" <${smtpUser}>` : '"ResolveFlow AI Support" <support@resolveflow.ai>');
+  const apiKey = config.RESEND_API_KEY || process.env.RESEND_API_KEY;
+  const resendFrom = config.RESEND_FROM || process.env.RESEND_FROM || 'ResolveFlow AI <onboarding@resend.dev>';
   const sub = subject || (ticketNumber ? `[ResolveFlow Support] Ticket ${ticketNumber} Update` : 'ResolveFlow AI Support Notification');
 
   const htmlBody = html || (text ? `
@@ -135,53 +82,58 @@ const sendMail = async ({ to, subject, text, html, ticketNumber }) => {
     </html>
   ` : undefined);
 
-  if (mailer && smtpUser && smtpPass) {
+  if (apiKey) {
     try {
-      console.log(`📤 [EmailService] Dispatching live email via Gmail to ${to}...`);
+      console.log(`📤 [EmailService] Dispatching live email via Resend to ${to}...`);
       
-      const mailOptions = {
-        from: fromAddress,
-        to,
+      const payload = {
+        from: resendFrom,
+        to: Array.isArray(to) ? to : [to],
         subject: sub,
-        text: text || '',
-        html: htmlBody,
-        headers: {
-          'X-Mailer': 'ResolveFlow AI Support Mailer',
-          'X-Entity-Ref-ID': ticketNumber || `rf_${Date.now()}`
-        }
+        text: text || undefined,
+        html: htmlBody || undefined
       };
 
-      const info = await mailer.sendMail(mailOptions);
+      const response = await axios.post('https://api.resend.com/emails', payload, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 15000
+      });
 
-      console.log(`✅ [EmailService] Live email successfully dispatched to ${to} (MessageId: ${info.messageId})`);
+      console.log(`✅ [EmailService] Live email successfully dispatched via Resend to ${to} (MessageId: ${response.data?.id})`);
       return {
         success: true,
         isLiveDelivery: true,
-        messageId: info.messageId,
-        response: info.response,
+        provider: 'resend',
+        messageId: response.data?.id,
         recipient: to,
         sentAt: new Date()
       };
     } catch (error) {
-      console.warn(`⚠️ [EmailService] Live SMTP delivery encountered error (${error.message}). Returning sandbox fallback.`);
+      const errMsg = error.response?.data?.message || error.message;
+      console.warn(`⚠️ [EmailService] Resend API error (${errMsg}). Falling back to simulated sandbox mode.`);
       return {
         success: true,
         isLiveDelivery: false,
+        provider: 'sandbox',
         messageId: `sim_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         recipient: to,
         sentAt: new Date(),
-        simulatedReason: error.message,
-        note: 'Live SMTP delivery failed. Dispatched in simulated sandbox mode.'
+        simulatedReason: errMsg,
+        note: 'Live delivery failed. Dispatched in development sandbox mode.'
       };
     }
   }
 
-  // Simulated fallback mode
+  // Fallback: Simulated sandbox mode when no API key is provided
   console.log(`📧 [EmailService: Sandbox Mode] To: ${to} | Subject: "${sub}"`);
   return {
     success: true,
     isLiveDelivery: false,
-    messageId: `gmail_msg_${Date.now()}`,
+    provider: 'sandbox',
+    messageId: `resend_msg_${Date.now()}`,
     recipient: to,
     sentAt: new Date(),
     note: 'Email simulated in development sandbox mode.'
@@ -189,7 +141,6 @@ const sendMail = async ({ to, subject, text, html, ticketNumber }) => {
 };
 
 module.exports = {
-  getTransporter,
-  verifySMTP,
+  verifyResend,
   sendMail
 };

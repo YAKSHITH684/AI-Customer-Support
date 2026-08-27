@@ -20,12 +20,8 @@ const config = {
   REDIS_URL: process.env.REDIS_URL || '',
   CONFIDENCE_THRESHOLD_AUTO_SEND: parseFloat(process.env.CONFIDENCE_THRESHOLD_AUTO_SEND || '0.80'),
   CONFIDENCE_THRESHOLD_ESCALATE: parseFloat(process.env.CONFIDENCE_THRESHOLD_ESCALATE || '0.65'),
-  SMTP_HOST: process.env.SMTP_HOST || 'smtp.gmail.com',
-  SMTP_PORT: parseInt(process.env.SMTP_PORT || '465', 10),
-  SMTP_SECURE: process.env.SMTP_SECURE !== 'false',
-  SMTP_USER: process.env.SMTP_USER || '',
-  SMTP_PASS: process.env.SMTP_PASS || '',
-  SMTP_FROM: process.env.SMTP_FROM || ''
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  RESEND_FROM: process.env.RESEND_FROM || 'ResolveFlow AI <onboarding@resend.dev>'
 };
 
 module.exports = config;

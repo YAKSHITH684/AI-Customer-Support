@@ -28,18 +28,10 @@ services:
         value: openai/gpt-oss-120b
       - key: MONGODB_URI
         sync: false
-      - key: SMTP_HOST
-        value: smtp.gmail.com
-      - key: SMTP_PORT
-        value: 587
-      - key: SMTP_SECURE
-        value: "false"
-      - key: SMTP_USER
-        value: yakshith023@gmail.com
-      - key: SMTP_PASS
-        value: yvnilidknochfvwk
-      - key: SMTP_FROM
-        value: "ResolveFlow AI Support" <yakshith023@gmail.com>
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: "ResolveFlow AI <onboarding@resend.dev>"
 
   # ====================================================
   # ResolveFlow_AI Frontend (Render Free Static Site)

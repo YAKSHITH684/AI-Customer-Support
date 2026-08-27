@@ -57,7 +57,7 @@ export default function IntegrationsPage() {
         setEmailStatus({
           success: true,
           message: isLive
-            ? `Email successfully delivered to ${emailForm.to} via Live SMTP! (ID: ${res.data.result?.messageId || 'sent'})`
+            ? `Email successfully delivered to ${emailForm.to} via Resend HTTP API! (ID: ${res.data.result?.messageId || 'sent'})`
             : `Email dispatched to ${emailForm.to} in simulated sandbox mode. (ID: ${res.data.result?.messageId || 'simulated'})`
         });
       }
@@ -303,9 +303,9 @@ export default function IntegrationsPage() {
                         <div className="flex items-center justify-between text-[11px] text-rose-300 font-semibold">
                           <span className="flex items-center gap-1.5">
                             <Mail className="w-3.5 h-3.5" />
-                            Live Gmail SMTP Dispatcher
+                            Live Resend Email Dispatcher
                           </span>
-                          <span className="text-[10px] text-gray-400 font-mono">From: yakshith023@gmail.com</span>
+                          <span className="text-[10px] text-gray-400 font-mono">Via: Resend HTTP API</span>
                         </div>
 
                         {emailStatus && (
@@ -441,7 +441,7 @@ export default function IntegrationsPage() {
                         Compose Live Support Email
                       </h3>
                       <p className="text-[11px] text-gray-400">
-                        Dispatched via Gmail SMTP (<code className="text-rose-300">yakshith023@gmail.com</code>)
+                        Dispatched via Resend HTTP API (<code className="text-rose-300">onboarding@resend.dev</code>)
                       </p>
                     </div>
                   </div>
