@@ -1,5 +1,6 @@
 const BaseIntegration = require('./baseIntegration');
 const { decrypt } = require('../utils/crypto');
+const emailService = require('../services/emailService');
 
 class GmailIntegration extends BaseIntegration {
   constructor() {
@@ -62,12 +63,19 @@ class GmailIntegration extends BaseIntegration {
     if (action === 'send_reply' || action === 'send_email') {
       const recipient = payload.toEmail || payload.to || 'customer@example.com';
       const ticketNum = payload.ticketNumber || 'TICK-TEST';
-      console.log(`📧 [Gmail Integration] Sending reply to ${recipient} for Ticket ${ticketNum}`);
+      const subject = payload.subject || `[ResolveFlow Support] Ticket ${ticketNum} Update`;
+      const text = payload.body || payload.content || payload.text || 'Notification from ResolveFlow AI Support.';
+
+      const mailResult = await emailService.sendMail({
+        to: recipient,
+        subject,
+        text,
+        ticketNumber: ticketNum
+      });
+
       return {
         success: true,
-        messageId: `gmail_msg_${Date.now()}`,
-        recipient,
-        sentAt: new Date()
+        ...mailResult
       };
     }
 
