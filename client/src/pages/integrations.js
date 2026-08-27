@@ -143,7 +143,7 @@ export default function IntegrationsPage() {
       border: 'border-rose-500/30',
       desc: 'Ingest customer support emails automatically and dispatch AI or agent resolutions via Gmail API.',
       testAction: 'send_email',
-      testPayload: { to: 'customer@acme.com', subject: 'ResolveFlow AI Verification', body: 'Test automated dispatch' },
+      testPayload: { to: 'yakshithanandapu684@gmail.com', subject: 'ResolveFlow AI Live Email Verification', body: 'This is a verified live dispatch from the ResolveFlow AI Customer Support Platform.' },
       testLabel: 'Send Test Email Dispatch',
     },
     {
