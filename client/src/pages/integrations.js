@@ -27,6 +27,46 @@ export default function IntegrationsPage() {
   const [testResult, setTestResult] = useState(null);
   const [embedCodeOpen, setEmbedCodeOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    to: 'yakshithanandapu684@gmail.com',
+    subject: 'ResolveFlow AI Support Notification',
+    body: 'Hello,\n\nThis is a verified live support message dispatched directly from the ResolveFlow AI Web Dashboard.\n\nBest regards,\nResolveFlow AI Support Team'
+  });
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState(null);
+
+  const handleSendCustomEmail = async (e) => {
+    e.preventDefault();
+    if (!emailForm.to || !emailForm.body) return;
+
+    setIsSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      const res = await api.post('/integrations/gmail/execute', {
+        action: 'send_email',
+        payload: {
+          to: emailForm.to,
+          subject: emailForm.subject,
+          body: emailForm.body
+        }
+      });
+
+      if (res.data?.success) {
+        setEmailStatus({
+          success: true,
+          message: `Email successfully delivered to ${emailForm.to}! (ID: ${res.data.result?.messageId || 'sent'})`
+        });
+      }
+    } catch (err) {
+      setEmailStatus({
+        success: false,
+        message: err.response?.data?.error || err.message || 'Failed to dispatch email.'
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   const fetchIntegrations = async () => {
     try {
@@ -161,13 +201,26 @@ export default function IntegrationsPage() {
               </p>
             </div>
 
-            <button
-              onClick={fetchIntegrations}
-              className="p-2 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-gray-300 hover:text-white transition-colors"
-              title="Refresh Status"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-brand-400' : ''}`} />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setEmailStatus(null);
+                  setEmailModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-semibold shadow-glow-brand flex items-center gap-2 transition-all"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Compose Live Email</span>
+              </button>
+
+              <button
+                onClick={fetchIntegrations}
+                className="p-2 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-gray-300 hover:text-white transition-colors"
+                title="Refresh Status"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-brand-400' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {/* Test Action Status Output */}
@@ -267,33 +320,165 @@ export default function IntegrationsPage() {
                       <span>{isConnected ? 'Disconnect' : 'Connect'}</span>
                     </button>
 
-                    {p.hasSnippet ? (
-                      <button
-                        onClick={() => setEmbedCodeOpen(true)}
-                        className="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-glow-brand flex items-center gap-1.5 transition-all"
-                      >
-                        <Code className="w-3.5 h-3.5" />
-                        <span>{p.testLabel}</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleTestExecution(p.id, p.testAction, p.testPayload)}
-                        disabled={testingProvider === p.id}
-                        className="px-3.5 py-1.5 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-xs text-brand-300 hover:text-white font-medium flex items-center gap-1.5 transition-colors"
-                      >
-                        {testingProvider === p.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Send className="w-3.5 h-3.5" />
-                        )}
-                        <span>{p.testLabel}</span>
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {p.id === 'gmail' && (
+                        <button
+                          onClick={() => {
+                            setEmailStatus(null);
+                            setEmailModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-xs text-rose-300 hover:text-white font-medium flex items-center gap-1.5 transition-colors"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>Compose</span>
+                        </button>
+                      )}
+
+                      {p.hasSnippet ? (
+                        <button
+                          onClick={() => setEmbedCodeOpen(true)}
+                          className="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-glow-brand flex items-center gap-1.5 transition-all"
+                        >
+                          <Code className="w-3.5 h-3.5" />
+                          <span>{p.testLabel}</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleTestExecution(p.id, p.testAction, p.testPayload)}
+                          disabled={testingProvider === p.id}
+                          className="px-3.5 py-1.5 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-xs text-brand-300 hover:text-white font-medium flex items-center gap-1.5 transition-colors"
+                        >
+                          {testingProvider === p.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Send className="w-3.5 h-3.5" />
+                          )}
+                          <span>{p.testLabel}</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {/* COMPOSE LIVE EMAIL MODAL */}
+          {emailModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+              <div className="max-w-lg w-full glass-panel rounded-3xl p-6 border border-rose-500/30 shadow-glass space-y-5 animate-fade-in">
+                <div className="flex items-center justify-between border-b border-dark-border pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-semibold text-white text-base">
+                        Compose Live Support Email
+                      </h3>
+                      <p className="text-[11px] text-gray-400">
+                        Dispatched via Gmail SMTP (<code className="text-rose-300">yakshith023@gmail.com</code>)
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setEmailModalOpen(false)}
+                    className="text-gray-400 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-dark-card hover:bg-dark-hover"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                {emailStatus && (
+                  <div
+                    className={`p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2 ${
+                      emailStatus.success
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                        : 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                    }`}
+                  >
+                    {emailStatus.success ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                    )}
+                    <span>{emailStatus.message}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSendCustomEmail} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Recipient Email (To)
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={emailForm.to}
+                      onChange={(e) => setEmailForm({ ...emailForm, to: e.target.value })}
+                      placeholder="customer@example.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-dark-bg border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Subject Line
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={emailForm.subject}
+                      onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                      placeholder="Support Notification"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-dark-bg border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Email Body Content
+                    </label>
+                    <textarea
+                      rows={5}
+                      required
+                      value={emailForm.body}
+                      onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
+                      placeholder="Write your customer reply message here..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-dark-bg border border-dark-border text-white text-xs placeholder-gray-500 focus:outline-none focus:border-rose-500/50 resize-none font-sans leading-relaxed"
+                    />
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-dark-border">
+                    <button
+                      type="button"
+                      onClick={() => setEmailModalOpen(false)}
+                      className="px-4 py-2 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-xs text-gray-300 hover:text-white font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingEmail}
+                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white text-xs font-semibold shadow-glow-brand flex items-center gap-2 transition-all disabled:opacity-50"
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Delivering...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span>Send Live Email</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* EMBED CODE MODAL */}
           {embedCodeOpen && (
