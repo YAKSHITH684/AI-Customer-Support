@@ -1,231 +1,306 @@
-# 🤖 ResolveFlow_AI — AI-Powered Customer Support Platform
+<div align="center">
 
-**A full-stack, agentic customer support system** that turns plain-English support tickets into knowledge-base-grounded, AI-drafted responses — auto-sent when confidence is high, escalated to a human when it isn't. Every step of the reasoning chain is logged, streamed live to the agent dashboard, and fully auditable.
+# 🤖 ResolveFlow_AI
 
-Think **Zendesk / Intercom**, but with an explicit, inspectable multi-agent reasoning layer sitting between the customer's question and the answer they receive.
+### Autonomous Customer Support Platform
 
-**🔗 Live Demo:** [ai-customer-support-1-nfmw.onrender.com](https://ai-customer-support-1-nfmw.onrender.com)
-> Hosted on Render's free tier — the app may take ~30–60s to wake up on first load, and outbound email sends fall back to simulation mode (see [Email Delivery note](#-a-note-on-email-delivery-in-production) below).
+**Retrieve • Draft • Score • Escalate • Resolve**
+
+An enterprise-grade support platform powered by a 5-agent orchestration chain, real-time WebSocket telemetry, semantic vector RAG, Groq LLM inference, and an omnichannel integrations hub.
+
+<br>
+
+[![Live App](https://img.shields.io/badge/Live%20App-Online-brightgreen?style=for-the-badge)](https://ai-customer-support-1-nfmw.onrender.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-Frontend-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-Realtime-010101?style=for-the-badge&logo=socketdotio&logoColor=white)](https://socket.io/)
+[![Groq](https://img.shields.io/badge/AI-Groq-orange?style=for-the-badge)](https://groq.com/)
+[![Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
+
+<br>
+
+**[🚀 Live Demo](https://ai-customer-support-1-nfmw.onrender.com/)** · **[📂 View Source](https://github.com/YAKSHITH684/AI-Customer-Support)** · **[🐞 Report a Bug](https://github.com/YAKSHITH684/AI-Customer-Support/issues)**
+
+</div>
 
 ---
 
-## ✨ Key Features
+## 📑 Table of Contents
 
-- **🔗 5-Agent Orchestration Chain** — every message runs through Retrieval → Drafting → Confidence → Escalation → Monitoring agents, each emitting its own timeline event.
-- **📚 Retrieval-Augmented Generation (RAG)** — support docs (PDFs, FAQs, policies, macros) are chunked, embedded, and stored in a vector store; every AI response is grounded in retrieved context with inline source citations.
-- **🎯 Confidence-Scored Auto-Resolution** — responses are only auto-sent when the AI's confidence clears the bar; otherwise the ticket is escalated with a specific reason (`NO_RELEVANT_CONTEXT`, `AMBIGUOUS_QUERY`, `NEGATIVE_SENTIMENT`, `POLICY_SENSITIVE`, `LOW_CONFIDENCE`).
-- **📡 Real-Time Agent Timeline** — Socket.IO streams every agent event live to the dashboard; a color-coded timeline shows exactly how each answer was produced.
-- **🔌 Real Third-Party Integrations** — Gmail (ticket intake + replies), Slack (escalation alerts), an embeddable website chat widget, and Google Sheets (CSAT/analytics export), all behind OAuth with encrypted token storage.
-- **🧩 Layered AI Fallback** — prefers OpenRouter, falls back to Google Gemini, and falls back further to a deterministic canned-response matcher, so the app degrades gracefully with zero API keys configured.
-- **🗂️ Full Audit Trail** — every resolution run, retry, and agent decision is persisted for compliance and quality review.
-- **🔐 Role-Based Access & Security** — JWT auth, bcrypt password hashing, encrypted OAuth credentials, rate-limited auth routes, and PII redaction before content reaches any third-party LLM.
+- [Live Demo](#-live-demo)
+- [Overview](#-overview)
+- [Features](#-features)
+- [How It Works](#-how-it-works)
+- [The 5-Agent Chain](#-the-5-agent-chain)
+- [Tech Stack](#️-tech-stack)
+- [Project Structure](#️-project-structure)
+- [Getting Started](#️-getting-started)
+- [Environment Variables](#-environment-variables)
+- [Deployment on Render](#️-deployment-on-render)
+- [Demo Accounts](#-demo-accounts)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Author](#-author)
 
 ---
 
-## 🏛️ Architecture
+## 🌐 Live Demo
 
-The system is a **completely decoupled Backend (`server/`) and Frontend (`client/`)** monorepo:
+🚀 **Live Application:** [ai-customer-support-1-nfmw.onrender.com](https://ai-customer-support-1-nfmw.onrender.com/)
+
+📂 **GitHub Repository:** [github.com/YAKSHITH684/AI-Customer-Support](https://github.com/YAKSHITH684/AI-Customer-Support)
+
+🔐 Log in with one of the [demo accounts](#-demo-accounts) to explore each role.
+
+---
+
+## 📌 Overview
+
+Support teams are buried in repetitive tickets, and generic chatbots answer without knowing the company's own policies. **ResolveFlow_AI** lets customers submit tickets in plain language and gets an answer **grounded in your own knowledge base**, with a human agent stepping in whenever the AI isn't confident enough.
+
+Every ticket runs through a chain of cooperating AI agents. High-confidence drafts are sent automatically, low-confidence ones are escalated to a human, and every step streams live to the agent dashboard so the reasoning stays inspectable.
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🧠 **5-Agent Orchestration** | Retrieval, drafting, confidence, escalation, and monitoring agents work as one chain |
+| 📚 **Semantic Vector RAG** | Answers are grounded in your uploaded support documents, not guesses |
+| ⚡ **Real-Time Telemetry** | WebSocket (Socket.IO) events stream each agent step to the dashboard live |
+| 🚀 **Groq LLM Inference** | Fast response drafting powered by Groq |
+| 🔀 **Smart Escalation** | Low-confidence answers are routed to human agents automatically |
+| 🔌 **Omnichannel Integrations Hub** | Connect external channels and tools from one place |
+| 🎫 **Ticket Management** | Customer ticket threads, agent queue, and role-based access (admin, agent, customer) |
+| 🔐 **Secure by Design** | JWT authentication and encrypted stored credentials |
+| 🗄️ **Zero-Config Database** | Starts an in-memory MongoDB automatically if `MONGODB_URI` is blank |
+
+---
+
+## 🚀 How It Works
+
+```mermaid
+flowchart LR
+    A[🎫 Customer Ticket] --> B[🔎 Retrieval Agent]
+    B --> C[✍️ Drafting Agent]
+    C --> D[📏 Confidence Agent]
+    D -->|High confidence| E[✅ Auto-Send Reply]
+    D -->|Low confidence| F[🧑‍💼 Escalation Agent]
+    F --> G[👩‍💻 Human Agent Review]
+    B -.-> H[📡 Monitoring Agent]
+    C -.-> H
+    D -.-> H
+    F -.-> H
+    H -.-> I[🖥️ Live Dashboard Timeline]
+```
+
+---
+
+## 🧠 The 5-Agent Chain
+
+| Agent | Role |
+|---|---|
+| 🔎 **Retrieval** | Searches the knowledge base for the most relevant document chunks |
+| ✍️ **Drafting** | Writes a reply grounded in the retrieved context |
+| 📏 **Confidence** | Scores the draft and decides whether to send it or escalate |
+| 🔀 **Escalation** | Routes uncertain tickets to the right human agent queue |
+| 📡 **Monitoring** | Emits an event for every step, powering the live timeline and audit trail |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | Next.js, React, Tailwind CSS |
+| **Backend** | Node.js, Express |
+| **Database** | MongoDB (in-memory fallback for local development) |
+| **Real-Time** | Socket.IO (WebSockets) |
+| **AI** | Groq LLM inference, semantic vector RAG |
+| **Auth & Security** | JWT, encrypted credentials |
+| **Hosting** | Render |
+
+---
+
+## 🗂️ Project Structure
+
+The backend and frontend are fully decoupled:
 
 ```
 AI-Customer-Support/
-├── server/                     # Standalone Backend API (Port 5000)
-│   └── src/
-│       ├── config/             # env, MongoDB connection, Socket.IO setup
-│       ├── routes/             # auth, tickets, resolutions, knowledge-base, integrations, notifications
-│       ├── controllers/        # request parsing & response shaping only
-│       ├── services/           # business logic (tickets, resolutions, AI, embeddings, integrations)
-│       ├── agents/             # orchestrator + retrieval/drafting/confidence/escalation/monitoring agents
-│       ├── integrations/       # Gmail, Slack, website widget, Google Sheets (common baseIntegration interface)
-│       ├── models/             # Mongoose schemas
-│       └── queues/             # BullMQ embedding & resolution queues (in-memory fallback if no Redis)
 │
-├── client/                     # Standalone Frontend (Port 3000)
-│   └── src/
-│       ├── components/         # AppShell, MetricGrid, TicketThread, DraftReviewPanel, AgentTimeline...
-│       ├── pages/               # Next.js Pages Router (dashboard, tickets, queue, knowledge-base, ...)
-│       ├── store/               # Zustand auth & ticket stores
-│       └── services/            # api.js (Axios), socket.js (Socket.IO client)
+├── server/                  # Standalone backend (port 5000)
+│   ├── src/                 # Agents, controllers, models, routes, services
+│   ├── .env.example         # Backend environment template
+│   └── package.json
 │
-├── spec.md                     # Full technical specification
-├── render.yaml                 # Render Blueprint for 1-click cloud deployment
-├── start-backend.bat/.ps1      # Windows launchers for the backend
-├── start-frontend.bat/.ps1     # Windows launchers for the frontend
-└── package.json                # Root convenience scripts
-```
-
-### Agent Chain
-
-```
-Customer message
-      │
-      ▼
- Retrieval Agent    → vector similarity search over the knowledge base
-      │
-      ▼
- Drafting Agent      → drafts a response grounded strictly in retrieved context
-      │
-      ▼
- Confidence Agent    → scores relevance + self-assessment → AUTO_SEND or ESCALATE
-      │
-      ├── AUTO_SEND ──────────────► sent to customer
-      │
-      └── ESCALATE
-            │
-            ▼
-       Escalation Agent  → classifies reason, routes to agent queue
-            │
-            ▼
-       Monitoring Agent  → emits timeline events for every step (streamed live via Socket.IO)
+├── client/                  # Standalone frontend (port 3000)
+│   ├── src/                 # Next.js pages, components, stores, styles
+│   ├── .env.example         # Frontend environment template
+│   └── package.json
+│
+├── render.yaml              # Render Blueprint for one-click cloud deploy
+├── start-backend.bat        # Windows launcher for the backend
+├── start-backend.ps1        # PowerShell launcher for the backend
+├── start-frontend.bat       # Windows launcher for the frontend
+├── start-frontend.ps1       # PowerShell launcher for the frontend
+├── spec.md                  # Full technical specification
+├── package.json             # Root convenience scripts
+└── README.md
 ```
 
 ---
 
-## 🧰 Tech Stack
-
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | Next.js (Pages Router), React 19, Tailwind CSS, Zustand, Axios, Socket.IO client, Recharts, lucide-react |
-| **Backend** | Node.js, Express, MongoDB + Mongoose, JWT, BullMQ (ioredis), Socket.IO, Helmet, Morgan, express-validator, bcryptjs |
-| **AI / RAG** | OpenRouter API, Google Generative AI (Gemini), LangChain, MongoDB Atlas Vector Search (or Pinecone) |
-| **Integrations** | Gmail, Slack, embeddable Website Chat Widget, Google Sheets — all via OAuth with encrypted credential storage |
-
----
-
-## 🚀 Getting Started
+## ⚙️ Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- MongoDB (optional — an in-memory database spins up automatically if `MONGODB_URI` is blank)
-- Redis (optional — BullMQ falls back to an in-memory queue if not configured)
 
-### Option 1: Run Backend and Frontend in Separate Terminals (Recommended)
+- Node.js (LTS recommended)
+- npm
+- A free [Groq API key](https://console.groq.com/)
 
-**Terminal 1 — Backend API (Port 5000)**
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/YAKSHITH684/AI-Customer-Support.git
+cd AI-Customer-Support
+```
+
+### 2. Start the backend (Terminal 1)
+
 ```bash
 cd server
-npm install    # first time only
+npm install        # first time only
 npm run dev
 ```
-- API Server: `http://localhost:5000`
-- Zero-config MongoDB: starts an in-memory database automatically if `MONGODB_URI` is blank.
 
-**Terminal 2 — Frontend Client (Port 3000)**
+API server runs at `http://localhost:5000`. If `MONGODB_URI` is blank, an in-memory MongoDB starts automatically, so no database setup is needed.
+
+### 3. Start the frontend (Terminal 2)
+
 ```bash
 cd client
-npm install    # first time only
+npm install        # first time only
 npm run dev
 ```
-- Web Application: `http://localhost:3000`
 
-### Option 2: 1-Click Launchers (Windows)
-- Double-click `start-backend.bat` (or run `./start-backend.ps1`)
-- Double-click `start-frontend.bat` (or run `./start-frontend.ps1`)
+Web app runs at `http://localhost:3000`.
 
-### Option 3: Run Concurrently from Root
-```bash
-npm run dev
-```
+### Other ways to run
+
+| Method | How |
+|---|---|
+| 🪟 **Windows launchers** | Double-click `start-backend.bat` and `start-frontend.bat` (or run the `.ps1` versions) |
+| ⚡ **From the root** | Run `npm run dev` to start everything together |
 
 ---
 
 ## 🔑 Environment Variables
 
-**`server/.env`**
-| Variable | Description |
-| :--- | :--- |
-| `NODE_ENV` | `development` \| `production` |
-| `CLIENT_URL` | Frontend origin, used for CORS |
-| `JWT_SECRET` | Secret used to sign/verify JWTs |
-| `CREDENTIAL_ENCRYPTION_KEY` | 32-char key used to encrypt OAuth tokens at rest |
-| `MONGODB_URI` | MongoDB connection string (optional — falls back to in-memory) |
-| `OPENROUTER_API_KEY` | Preferred AI generation provider |
-| `GEMINI_API_KEY` | Fallback AI generation provider (Google Gemini) |
-| `GROQ_API_KEY` / `GROQ_MODEL` | Groq LLM inference credentials & model |
-| `REDIS_URL` | Optional — enables BullMQ background queues |
+Copy `.env.example` to `.env` in both `server/` and `client/`.
 
-**`client/.env`**
-| Variable | Description |
-| :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | Backend REST API base URL |
-| `NEXT_PUBLIC_SOCKET_URL` | Backend Socket.IO URL |
+**Backend (`server/`)**
 
-See each package's `.env.example` for the full list.
+| Variable | Purpose |
+|---|---|
+| `NODE_ENV` | Runtime environment (`production` when deployed) |
+| `CLIENT_URL` | Frontend URL allowed to call the API |
+| `JWT_SECRET` | Secret used to sign login tokens |
+| `CREDENTIAL_ENCRYPTION_KEY` | 32-character key for encrypting stored credentials |
+| `GROQ_API_KEY` | Your Groq API key |
+| `GROQ_MODEL` | Model used for inference (e.g. `openai/gpt-oss-120b`) |
+| `MONGODB_URI` | MongoDB connection string (optional locally) |
 
----
+**Frontend (`client/`)**
 
-## ☁️ Deploying on Render
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | Backend API URL, e.g. `https://your-backend.onrender.com/api` |
+| `NEXT_PUBLIC_SOCKET_URL` | Backend URL for WebSocket connections |
 
-### Option A: Blueprint (Automated 1-Click)
-1. Push your repository to GitHub.
-2. Go to the [Render Dashboard](https://dashboard.render.com/) → **New** → **Blueprint**.
-3. Connect this repository — Render auto-detects `render.yaml` and provisions both services.
-4. Add your `GROQ_API_KEY` and optional `MONGODB_URI` in the Render dashboard.
-
-### Option B: Deploy Backend & Frontend Manually
-
-**Backend Web Service**
-- Root Directory: `server` · Environment: `Node`
-- Build Command: `npm install` · Start Command: `npm start`
-- Env vars: `NODE_ENV`, `CLIENT_URL`, `JWT_SECRET`, `CREDENTIAL_ENCRYPTION_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`, `MONGODB_URI`
-
-**Frontend Web Service**
-- Root Directory: `client` · Environment: `Node`
-- Build Command: `npm install && npm run build` · Start Command: `npm start`
-- Env vars: `NODE_ENV`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL`
-
-### 🌐 A Note on Email Delivery in Production
-
-Render's free tier blocks all outbound raw SMTP ports (`25`, `465`, `587`) to prevent spam abuse. This means:
-
-| Environment | Outbound SMTP Ports | Result |
-| :--- | :--- | :--- |
-| **Local** (`localhost:3000`) | ✅ Open | Real delivery to the recipient's inbox |
-| **Render (Free Tier)** | ⛔ Blocked | Falls back to a sandboxed email simulation so the app doesn't hang or crash |
-
-To test live email delivery, run the app locally and send from **Integrations → Gmail → Send Live Support Email**. A paid Render plan or an HTTP-based email API (e.g., SendGrid, Postmark, Resend) removes this restriction in production.
+> ⚠️ Never commit real `.env` files or API keys.
 
 ---
 
-## 🔐 Default Demo Accounts
+## ☁️ Deployment on Render
+
+**Live URL:** [ai-customer-support-1-nfmw.onrender.com](https://ai-customer-support-1-nfmw.onrender.com/)
+
+### Option A: Blueprint (one click)
+
+1. Push the repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com/), choose **New → Blueprint**.
+3. Connect the repo. Render detects `render.yaml` and creates both services.
+4. Add `GROQ_API_KEY` and, optionally, `MONGODB_URI` in the dashboard.
+
+### Option B: Two manual Web Services
+
+| Setting | Backend | Frontend |
+|---|---|---|
+| **Root Directory** | `server` | `client` |
+| **Environment** | Node | Node |
+| **Build Command** | `npm install` | `npm install && npm run build` |
+| **Start Command** | `npm start` | `npm start` |
+
+Set the environment variables listed above on each service, using your deployed backend URL for `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL`, and your deployed frontend URL for `CLIENT_URL`.
+
+---
+
+## 🔐 Demo Accounts
+
+Use these to explore each role:
 
 | Role | Email | Password |
-| :--- | :--- | :--- |
+|---|---|---|
 | **Support Agent** | `agent@resolveflow.ai` | `Password123!` |
 | **Administrator** | `admin@resolveflow.ai` | `Password123!` |
 | **Customer** | `customer@acme.com` | `Password123!` |
 
-> Change or remove these before deploying to a public/production environment.
+> These are demo credentials only. Change or remove them before using the app with real data.
 
 ---
 
-## 📡 API Overview
+## 🔮 Roadmap
 
-| Area | Endpoints |
-| :--- | :--- |
-| **Auth** | `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me` |
-| **Tickets** | `GET/POST /api/tickets` · `GET/PUT/DELETE /api/tickets/:id` · `POST /api/tickets/:id/messages` · `POST /api/tickets/:id/escalate` · `POST /api/tickets/:id/resolve` |
-| **Knowledge Base** | `GET/POST /api/knowledge-base` · `GET /api/knowledge-base/:id/status` · `DELETE /api/knowledge-base/:id` |
-| **Resolutions** | `GET /api/resolutions/:id` · `GET /api/resolutions/:id/timeline` · `POST /api/resolutions/:id/approve` · `POST /api/resolutions/:id/edit` · `POST /api/resolutions/:id/retry` |
-| **Integrations** | `GET /api/integrations` · `GET /api/integrations/status` · `GET /api/integrations/oauth/:provider/start` · `GET /api/integrations/oauth/:provider/callback` |
-| **Notifications** | `GET /api/notifications` |
-| **Health** | `GET /api/health` |
-
-Full request/response contracts are documented in [`spec.md`](./spec.md).
+- [ ] 📊 Analytics and CSAT reporting
+- [ ] 🌍 Multi-language support
+- [ ] 🎙️ Voice support channel
+- [ ] 🧪 Automated evaluation of AI answer quality
+- [ ] 📱 Mobile-friendly agent app
+- [ ] 🏢 Multi-tenant workspaces
 
 ---
 
-## 🖥️ Frontend Pages
+## 🤝 Contributing
 
-`/` (landing) · `/login` · `/register` · `/dashboard` (metrics + live AI activity feed) · `/knowledge-base` (upload & embedding status) · `/tickets` and `/tickets/[id]` (thread + AI draft + agent-chain sidebar) · `/queue` (escalation queue with SLA countdowns) · `/integrations` (OAuth connections) · `/settings`
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m "Add your feature"`
+4. Push to your branch: `git push origin feature/your-feature`
+5. Open a Pull Request
 
 ---
 
-## 🔒 Security
+## 📄 License
 
-- Passwords hashed with bcrypt (cost factor 12)
-- JWT-based auth with protected routes and role separation (`admin` / `agent` / `customer`)
-- OAuth access & refresh tokens encrypted at rest via `CREDENTIAL_ENCRYPTION_KEY`
-- HTTP security headers via Helmet, CORS locked to `CLIENT_URL`
-- Rate-limited auth endpoints, request validation via express-validator
-- PII (card numbers, national ID patterns) redacted from ticket content before it reaches any LLM provider
-- Missing/expired integration credentials surface as explicit `INTEGRATION_NOT_CONNECTED` / `AUTH_EXPIRED` errors rather than silent failures
+No license has been added yet. Add one (e.g. MIT) if you want others to reuse this project.
+
+---
+
+## 👨‍💻 Author
+
+**YAKSHITH684**
+GitHub: [@YAKSHITH684](https://github.com/YAKSHITH684)
+
+<div align="center">
+
+Built with Next.js, Node.js, MongoDB, Socket.IO, Groq, and Render.
+
+⭐ If you find this project useful, consider giving the repository a star!
+
+</div>
