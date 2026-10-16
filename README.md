@@ -1,12 +1,18 @@
 <div align="center">
 
-# 🤖 ResolveFlow_AI
-
-### Autonomous Customer Support Platform
-
-**Retrieve • Draft • Score • Escalate • Resolve**
-
-An enterprise-grade support platform powered by a 5-agent orchestration chain, real-time WebSocket telemetry, semantic vector RAG, Groq LLM inference, and an omnichannel integrations hub.
+<table>
+<tr>
+<td width="240" align="center">
+<img src="https://res.cloudinary.com/dfzdsdoa5/image/upload/v1781496318/7185ea6e6f375aa1ab00f1561d874177_kggruw.png" alt="ResolveFlow_AI logo" width="220">
+</td>
+<td>
+<h1>ResolveFlow_AI</h1>
+<h3>Autonomous Customer Support Platform</h3>
+<p><b>Retrieve • Draft • Score • Escalate • Resolve</b></p>
+<p>An enterprise-grade support platform powered by a 5-agent orchestration chain, real-time WebSocket telemetry, semantic vector RAG, Groq LLM inference, and an omnichannel integrations hub.</p>
+</td>
+</tr>
+</table>
 
 <br>
 
